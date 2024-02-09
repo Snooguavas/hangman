@@ -5,59 +5,76 @@ function chooseWord () {
     const rand = Math.floor(Math.random() * words.length);
     return words[rand];
 }
-let attemptsLeft;
+
 let answerText = document.querySelector('#answer');
+answerText.style.visibility = 'hidden';
+let attemptsLeft;
+let answer = [];
+let solution;
 
 const playAgainBtn = document.querySelector('#playagain');
-playAgainBtn.addEventListener('click', playGame);
+playAgainBtn.addEventListener('click', initGame);
 
-function playGame() {
+
+// listen to buttons
+const buttons = document.querySelectorAll('#letters_container .btn');
+for (let button of buttons) {
+    button.addEventListener('click', checkLetter);
+    button.style.visibility = 'hidden';
+}
+
+function initGame() {
     // initialize game
-    let solution = chooseWord();
+    answer = [];
+    solution = chooseWord();
     attemptsLeft = 5;
     console.log(solution);
-    let answer = [];
+    for (let button of buttons) {
+        button.disabled = false;
+        button.style.visibility = 'visible';
+    }
     for (let char of solution){
         answer.push('_ ');
     }
-    function updateStats() {
-        document.querySelector('.lives').textContent = `Lives: ${attemptsLeft}`;
+    answerText.style.visibility = 'visible';
+    updateStats();
+}
+
+// checking attempted letter 
+function checkLetter() {
+    const letterTried = this.textContent.toLowerCase();
+    if (!solution.includes(letterTried)){
+        console.log('Nope!');
+        attemptsLeft--;
+    }
+    // if right
+    else {
+        for (let i = 0; i < solution.length; i++) {
+            if (letterTried === solution[i]) {
+                answer[i] = solution[i];
+                console.log(`${solution[i]} was found!`)
+            }
+        }
         answerText.textContent = answer.join(' ');
     }
     updateStats();
-    // listen to buttons
-    const buttons = document.querySelectorAll('#letters_container .btn');
-    for (let button of buttons) {
-        button.addEventListener('click', checkLetter);
-    }
-    
-    
-    // checking attempted letter 
-    function checkLetter() {
-        const letterTried = this.textContent.toLowerCase();
-        if (!solution.includes(letterTried)){
-            console.log('Nope!');
-            attemptsLeft--;
-        }
-        // if right
-        else {
-            for (let i = 0; i < solution.length; i++) {
-                if (letterTried === solution[i]) {
-                    answer[i] = solution[i];
-                    console.log(`${solution[i]} was found!`)
-                }
-            }
-            answerText.textContent = answer.join(' ');
-        }
-        updateStats();
-        this.disabled = true;
-        if (attemptsLeft === 0) {
-            console.log('You Lose!')
-        }
-        else if (answer.join('') === solution) {
-            console.log('You Win!');
-            words.splice(words.indexOf(solution), 1);
-        }
+    this.disabled = true;
+    if (attemptsLeft === 0 || answer.join('') === solution) {
+        gameOver();
     }
 }
-// playGame();
+function gameOver() {
+    if (attemptsLeft === 0) {
+        console.log('You Lose!')
+    }
+    else if (answer.join('') === solution) {
+        console.log('You Win!');
+        words.splice(words.indexOf(solution), 1);
+    }
+    initGame();
+}
+
+function updateStats() {
+    document.querySelector('.lives').textContent = `Lives: ${attemptsLeft}`;
+    answerText.textContent = answer.join(' ');
+}
